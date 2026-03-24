@@ -2,7 +2,10 @@ import { useState } from "react";
 import BookCard from "../components/BookCard";
 import type { OpenLibraryBook } from "../types/book";
 import type { MyBook } from "../types/myBook";
-import type { ShelfType } from "../types/shelf"
+import ShelfGrid from "../components/ShelfGrid";
+import type { ShelfType } from "../types/shelf";
+import { SHELF_LABELS } from "../types/shelf";
+
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -10,6 +13,9 @@ export default function Home() {
   const [myBooks, setMyBooks] = useState<MyBook[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedShelf, setSelectedShelf] =
+  useState<ShelfType>("read_this_year");
+  
 
   async function searchBooks() {
     if (!query.trim()) return;
@@ -28,6 +34,11 @@ export default function Home() {
 
       const data: any = await res.json();
       setBooks(data.docs || []);
+      const el = document.getElementById("search-results");
+      const bookShelf = document.getElementById("selected-shelf")
+      el?.classList.remove("hidden");
+      bookShelf?.classList.add("hidden");
+      
     } catch (err) {
       console.error(err);
       setError("Something went wrong while searching.");
@@ -42,7 +53,7 @@ export default function Home() {
       author: book.author_name?.[0] || "Unknown author",
       coverId: book.cover_i,
       addedAt: new Date().toISOString(),
-      shelf: "read_this_year",
+      shelf: shelf,
       year: new Date().getFullYear(),
     };
   }
@@ -58,11 +69,23 @@ export default function Home() {
   
     setMyBooks([...myBooks, newBook]);
   }
-
+  function getShelfCount(shelf: ShelfType) {
+    return myBooks.filter((book) => book.shelf === shelf).length
+  }
+  const filteredBooks = myBooks.filter((book) => book.shelf === selectedShelf);
+  function handleSelectShelf(shelf: ShelfType) {
+    setSelectedShelf(shelf);
+  
+    const el = document.getElementById("search-results");
+    const bookShelf = document.getElementById("selected-shelf");
+    el?.classList.add("hidden");
+    bookShelf?.classList.remove("hidden");
+  }
   return (
-    <main className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">📚 My Bookshelf</h1>
+    <main className="p-6 m-6 max-w-7xl mx-auto">
 
+  <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+    <div>
       <div className="flex gap-2 mb-6">
         <input
           className="border rounded px-3 py-2 w-full"
@@ -82,32 +105,33 @@ export default function Home() {
       {loading && <p>Loading...</p>}
       {error && <p>{error}</p>}
 
-      <div className="grid gap-4">
-      {books.map((book) => (
-        <BookCard
+      <div className="grid gap-4" id="search-results">
+        {books.map((book) => (
+          <BookCard
             key={book.key}
             book={book}
             onAdd={handleAddBook}
-          />      
-          ))}
+          />
+        ))}
       </div>
-      <section className="mt-10">
+
+      <section className="mt-10" id="selected-shelf">
         <h2 className="text-2xl font-bold mb-4">
-          Read This Year ({new Date().getFullYear()})
+          {SHELF_LABELS[selectedShelf]}
         </h2>
 
-        {myBooks.length === 0 ? (
+        {filteredBooks.length === 0 ? (
           <p>No books added yet.</p>
         ) : (
           <div className="grid gap-4">
-            {myBooks.map((book) => {
+            {filteredBooks.map((book) => {
               const coverUrl = book.coverId
                 ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`
                 : null;
 
               return (
                 <div
-                  key={book.id}
+                  key={`${book.shelf}-${book.id}`}
                   className="border rounded p-4 flex gap-4 items-start"
                 >
                   {coverUrl ? (
@@ -132,6 +156,16 @@ export default function Home() {
           </div>
         )}
       </section>
-    </main>
+    </div>
+
+    <div>
+      <ShelfGrid
+        selectedShelf={selectedShelf}
+        onSelectShelf={handleSelectShelf}
+        getShelfCount={getShelfCount}
+      />
+    </div>
+  </div>
+</main>
   );
 }
