@@ -6,7 +6,7 @@ import ShelfGrid from "../components/ShelfGrid";
 import type { ShelfType } from "../types/shelf";
 import { SHELF_LABELS } from "../types/shelf";
 import BookSpine from "../components/BookSpine";
-import TopNav from "../components/topNav"
+import TopNav from "../components/TopNav"
 
 export default function Home() {
   const [query, setQuery] = useState("");
