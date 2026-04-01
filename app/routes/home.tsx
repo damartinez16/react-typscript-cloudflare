@@ -5,7 +5,8 @@ import type { MyBook } from "../types/myBook";
 import ShelfGrid from "../components/ShelfGrid";
 import type { ShelfType } from "../types/shelf";
 import { SHELF_LABELS } from "../types/shelf";
-
+import BookSpine from "../components/BookSpine";
+import TopNav from "../components/topNav"
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -15,6 +16,11 @@ export default function Home() {
   const [error, setError] = useState("");
   const [selectedShelf, setSelectedShelf] =
   useState<ShelfType>("read_this_year");
+  const [openBookId, setOpenBookId] = useState<string | null>(null);
+
+  function handleToggleBook(id: string) {
+    setOpenBookId((current) => (current === id ? null : id));
+  }
   
 
   async function searchBooks() {
@@ -82,8 +88,9 @@ export default function Home() {
     bookShelf?.classList.remove("hidden");
   }
   return (
-    <main className="p-6 m-6 max-w-7xl mx-auto">
-
+    
+<main className="p-6 m-6 max-w-7xl mx-auto">
+<div><TopNav /></div>
   <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
     <div>
       <div className="flex gap-2 mb-6">
@@ -115,47 +122,30 @@ export default function Home() {
         ))}
       </div>
 
-      <section className="mt-10" id="selected-shelf">
-        <h2 className="text-2xl font-bold mb-4">
-          {SHELF_LABELS[selectedShelf]}
-        </h2>
+    <section id="selected-shelf" className="mt-10">
+      <h2 className="text-2xl font-bold mb-4">
+        {SHELF_LABELS[selectedShelf]}
+      </h2>
 
-        {filteredBooks.length === 0 ? (
-          <p>No books added yet.</p>
-        ) : (
-          <div className="grid gap-4">
-            {filteredBooks.map((book) => {
-              const coverUrl = book.coverId
-                ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`
-                : null;
-
-              return (
-                <div
-                  key={`${book.shelf}-${book.id}`}
-                  className="border rounded p-4 flex gap-4 items-start"
-                >
-                  {coverUrl ? (
-                    <img
-                      src={coverUrl}
-                      alt={book.title}
-                      className="w-20 h-auto rounded"
-                    />
-                  ) : (
-                    <div className="w-20 h-28 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
-                      No cover
-                    </div>
-                  )}
-
-                  <div>
-                    <h3 className="text-lg font-semibold">{book.title}</h3>
-                    <p className="text-sm text-gray-600">{book.author}</p>
-                  </div>
-                </div>
-              );
-            })}
+      {filteredBooks.length === 0 ? (
+        <p>No books added yet.</p>
+      ) : (
+        <div className="mt-8">
+          <div className="flex items-end gap-2 overflow-x-auto pb-4 px-2">
+            {filteredBooks.map((book) => (
+              <BookSpine
+                key={`${book.shelf}-${book.id}`}
+                book={book}
+                isOpen={openBookId === book.id}
+                onToggle={handleToggleBook}
+              />
+            ))}
           </div>
-        )}
-      </section>
+
+          <div className="h-4 rounded bg-gradient-to-b from-amber-700 to-amber-900 shadow-inner" />
+        </div>
+      )}
+    </section>
     </div>
 
     <div>
