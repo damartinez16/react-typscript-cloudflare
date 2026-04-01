@@ -31,7 +31,7 @@ export default function Home() {
 
     try {
       const res = await fetch(
-        `https://openlibrary.org/search.json?title=${encodeURIComponent(query)}`
+        `/api/search-books?q=${encodeURIComponent(query)}`
       );
 
       if (!res.ok) {
